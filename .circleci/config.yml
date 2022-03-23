@@ -184,7 +184,6 @@ workflows:
       - tag-and-publish:
           name: "Tag and Publish Docker Images"
           requires:
-            - "Testing Docker Image"
             - "Scan image via Snyk"
             - "Testing Python Demo Code"
           filters:
