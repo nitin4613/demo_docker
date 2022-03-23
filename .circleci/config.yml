@@ -1,6 +1,7 @@
 version: 2.1
 jobs:
-  building app:
+
+  build:
     docker:
       - image: cimg/python:3.8.4
         environment:
@@ -23,26 +24,26 @@ jobs:
       # - setup_remote_docker:
       #     docker_layer_caching: true
 
-    build image:
-      description: "Build Docker image"
-      steps:
-      - checkout
-      - run:
-        name: Build Docker Image
-        command: docker build --build-arg VERSION=${VERSION} --build-arg CIRCLE_BUILD_URL=${CIRCLE_BUILD_URL} --build-arg CIRCLE_SHA1=${CIRCLE_SHA1} --build-arg CIRCLE_USERNAME=${CIRCLE_USERNAME} --build-arg CIRCLE_BUILD_NUM=${CIRCLE_BUILD_NUM} -t ${DOCKER_IMAGE}:${VERSION}-${CIRCLE_SHA1} -f Dockerfile .
+    builder:
+        description: "Build Docker image"
+        steps:
+          - checkout
+          - run:
+              name: Build Docker Image
+              command: docker build --build-arg VERSION=${VERSION} --build-arg CIRCLE_BUILD_URL=${CIRCLE_BUILD_URL} --build-arg CIRCLE_SHA1=${CIRCLE_SHA1} --build-arg CIRCLE_USERNAME=${CIRCLE_USERNAME} --build-arg CIRCLE_BUILD_NUM=${CIRCLE_BUILD_NUM} -t ${DOCKER_IMAGE}:${VERSION}-${CIRCLE_SHA1} -f Dockerfile .
 
-    tagging image:
+    tagger:
       description: "Add tags to a Docker Image"
       steps:
-      - run:
-          name: Tag Image
-          command: | 
-            docker tag ${DOCKER_IMAGE}:${VERSION}-${CIRCLE_SHA1} ${DOCKERHUB_USERNAME}/${DOCKER_IMAGE}:${VERSION}-${CIRCLE_SHA1}
-            docker tag ${DOCKER_IMAGE}:${VERSION}-${CIRCLE_SHA1} ${DOCKERHUB_USERNAME}/${DOCKER_IMAGE}:${CIRCLE_SHA1}
-            docker tag ${DOCKER_IMAGE}:${VERSION}-${CIRCLE_SHA1} ${DOCKERHUB_USERNAME}/${DOCKER_IMAGE}:${VERSION}
-            docker tag ${DOCKER_IMAGE}:${VERSION}-${CIRCLE_SHA1} ${DOCKERHUB_USERNAME}/${DOCKER_IMAGE}:latest
+        - run:
+            name: Tag Image
+            command: | 
+              docker tag ${DOCKER_IMAGE}:${VERSION}-${CIRCLE_SHA1} ${DOCKERHUB_USERNAME}/${DOCKER_IMAGE}:${VERSION}-${CIRCLE_SHA1}
+              docker tag ${DOCKER_IMAGE}:${VERSION}-${CIRCLE_SHA1} ${DOCKERHUB_USERNAME}/${DOCKER_IMAGE}:${CIRCLE_SHA1}
+              docker tag ${DOCKER_IMAGE}:${VERSION}-${CIRCLE_SHA1} ${DOCKERHUB_USERNAME}/${DOCKER_IMAGE}:${VERSION}
+              docker tag ${DOCKER_IMAGE}:${VERSION}-${CIRCLE_SHA1} ${DOCKERHUB_USERNAME}/${DOCKER_IMAGE}:latest
 
-    publish image:
+    publisher:
       description: "Publish Docker Image"
       steps:  
          - run:
@@ -58,14 +59,14 @@ workflows:
     version: 2
     Build-Deploy: 
       jobs: 
-          - building app
-          - build image:
+          - build
+          - builder:
               name: "Building Docker Image"
-          - tagging image:
+          - tagger:
               name: "Tagging Docker Image"
               requires: 
                 - "Building Docker Image"
-          - publish image:
+          - publisher:
               requires:
                 - "Tagging Docker image"
         
