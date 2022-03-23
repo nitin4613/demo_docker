@@ -19,7 +19,7 @@ jobs:
           name: Run Tests
           command: |
             . app/bin/activate
-            python test_demo.py
+            python tests/test_demo.py
       - setup_remote_docker:
           docker_layer_caching: true
       - run:
