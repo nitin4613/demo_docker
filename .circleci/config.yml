@@ -132,6 +132,13 @@ executors:
     resource_class: medium
 
 jobs:
+  test-demo:
+    executor: browsers-python
+    steps:
+      - run-pytest:
+          requirements-path: "./demo/requirements/testing.txt"
+          pytest-args: "--live-server-port 8080 --verbose --junitxml=test-results/junit.xml"
+
   build-image:
     executor: docker-builder
     steps:
