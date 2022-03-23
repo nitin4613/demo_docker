@@ -1,6 +1,6 @@
 version: 2.1
 jobs:
-  building image:
+  building app:
     docker:
       - image: cimg/python:3.8.4
         environment:
@@ -22,19 +22,49 @@ jobs:
       #       python tests/test_demo.py
       - setup_remote_docker:
           docker_layer_caching: true
-      - run:
-          name: Build and push Docker image
+    build image:
+      description: "Build Docker image"
+      steps:
+        - checkout
+        - run:
+          name: Build Docker Image
+          command: docker build --build-arg VERSION=${VERSION} --build-arg CIRCLE_BUILD_URL=${CIRCLE_BUILD_URL} --build-arg CIRCLE_SHA1=${CIRCLE_SHA1} --build-arg CIRCLE_USERNAME=${CIRCLE_USERNAME} --build-arg CIRCLE_BUILD_NUM=${CIRCLE_BUILD_NUM} -t ${DOCKER_IMAGE}:${VERSION}-${CIRCLE_SHA1} -f Dockerfile .
+
+    tagging image:
+      description: "Add tags to a Docker Image"
+      steps:
+        - run:
+          name: Tag Image
+          command: | 
+            docker tag ${DOCKER_IMAGE}:${VERSION}-${CIRCLE_SHA1} ${DOCKERHUB_USERNAME}/${DOCKER_IMAGE}:${VERSION}-${CIRCLE_SHA1}
+            docker tag ${DOCKER_IMAGE}:${VERSION}-${CIRCLE_SHA1} ${DOCKERHUB_USERNAME}/${DOCKER_IMAGE}:${CIRCLE_SHA1}
+            docker tag ${DOCKER_IMAGE}:${VERSION}-${CIRCLE_SHA1} ${DOCKERHUB_USERNAME}/${DOCKER_IMAGE}:${VERSION}
+            docker tag ${DOCKER_IMAGE}:${VERSION}-${CIRCLE_SHA1} ${DOCKERHUB_USERNAME}/${DOCKER_IMAGE}:latest
+    
+    publish image:
+      description: "Publish Docker Image"
+      steps:  
+        - run:
+          name: "Publish Docker Images to Docker Hub"
           command: |
-            . app/bin/activate
-            python -m pyinstaller -F app.py
-            docker build -t nkuriakose1/$IMAGE_NAME:$TAG .
-            echo Docker_Login| docker login -u Docker_Login --password-stdin
-            docker push nkuriakose1/$IMAGE_NAME:$TAG
+            echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+            docker push ${DOCKERHUB_USERNAME}/${DOCKER_IMAGE}:${VERSION}-${CIRCLE_SHA1} 
+            docker push ${DOCKERHUB_USERNAME}/${DOCKER_IMAGE}:${CIRCLE_SHA1}
+            docker push ${DOCKERHUB_USERNAME}/${DOCKER_IMAGE}:${VERSION}
+            docker push ${DOCKERHUB_USERNAME}/${DOCKER_IMAGE}:latest
 
 workflows: 
     version: 2
     Build-Deploy: 
       jobs: 
-          - building image:
-              context: Docker_Login
+          - building app
+          - build image:
+              name: "Building Docker Image"
+          - tagging image:
+              name: "Tagging Docker Image"
+              requires: 
+                - "Building Docker Image"
+          - publish image:
+              requires:
+                - "Tagging Docker image"
         
