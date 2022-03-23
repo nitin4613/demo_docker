@@ -22,18 +22,18 @@ jobs:
       #       python tests/test_demo.py
       - setup_remote_docker:
           docker_layer_caching: true
-    build image:
-      description: "Build Docker image"
-      steps:
-        - checkout
-        - run:
+build docker image:
+    description: "Build Docker image"
+    steps:
+      - checkout
+      - run:
           name: Build Docker Image
           command: docker build --build-arg VERSION=${VERSION} --build-arg CIRCLE_BUILD_URL=${CIRCLE_BUILD_URL} --build-arg CIRCLE_SHA1=${CIRCLE_SHA1} --build-arg CIRCLE_USERNAME=${CIRCLE_USERNAME} --build-arg CIRCLE_BUILD_NUM=${CIRCLE_BUILD_NUM} -t ${DOCKER_IMAGE}:${VERSION}-${CIRCLE_SHA1} -f Dockerfile .
 
-    tagging image:
-      description: "Add tags to a Docker Image"
-      steps:
-        - run:
+tagging image:
+    description: "Add tags to a Docker Image"
+    steps:
+      - run:
           name: Tag Image
           command: | 
             docker tag ${DOCKER_IMAGE}:${VERSION}-${CIRCLE_SHA1} ${DOCKERHUB_USERNAME}/${DOCKER_IMAGE}:${VERSION}-${CIRCLE_SHA1}
@@ -41,9 +41,9 @@ jobs:
             docker tag ${DOCKER_IMAGE}:${VERSION}-${CIRCLE_SHA1} ${DOCKERHUB_USERNAME}/${DOCKER_IMAGE}:${VERSION}
             docker tag ${DOCKER_IMAGE}:${VERSION}-${CIRCLE_SHA1} ${DOCKERHUB_USERNAME}/${DOCKER_IMAGE}:latest
     
-    publish image:
-      description: "Publish Docker Image"
-      steps:  
+publish image:
+    description: "Publish Docker Image"
+    steps:  
         - run:
           name: "Publish Docker Images to Docker Hub"
           command: |
@@ -58,7 +58,7 @@ workflows:
     Build-Deploy: 
       jobs: 
           - building app
-          - build image:
+          - build docker image:
               name: "Building Docker Image"
           - tagging image:
               name: "Tagging Docker Image"
