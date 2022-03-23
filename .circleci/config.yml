@@ -159,7 +159,7 @@ jobs:
       DOCKER_IMAGE: circleci-demo-app
 
   tag-and-publish:
-    executor: amd64
+    executor: docker-builder
     steps:
       - set-build-env
       - load-docker-image
