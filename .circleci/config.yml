@@ -26,7 +26,7 @@ jobs:
           name: Build and push Docker image
           command: |
             . app/bin/activate
-            pyinstaller -F app.py
+            python -m pyinstaller -F app.py
             docker build -t nkuriakose1/$IMAGE_NAME:$TAG .
             echo Docker_Login| docker login -u Docker_Login --password-stdin
             docker push nkuriakose1/$IMAGE_NAME:$TAG
