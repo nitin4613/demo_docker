@@ -149,7 +149,7 @@ jobs:
       DOCKER_IMAGE: circleci-demo-app
 
   scan-image:
-    executor: amd64
+    executor: docker-builder
     steps:
       - set-build-env
       - load-docker-image
