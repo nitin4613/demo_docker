@@ -1,8 +1,8 @@
 version: 2.1
 jobs:
-  build:
+  building image:
     docker:
-      - image: circleci/python:2.7.14
+      - image: circleci/python:3.10.2
         environment:
           FLASK_CONFIG: testing
     steps:
@@ -27,12 +27,14 @@ jobs:
           command: |
             . app/bin/activate
             pyinstaller -F app.py
-            docker build -t ariv3ra/$IMAGE_NAME:$TAG .
-            echo DOCKER_LOGIN| docker login -u DOCKER_LOGIN --password-stdin
+            docker build -t nkuriakose1/$IMAGE_NAME:$TAG .
+            echo Docker_Login| docker login -u Docker_Login --password-stdin
             docker push nkuriakose1/$IMAGE_NAME:$TAG
 
 workflows: 
     version: 2
     Build-Deploy: 
       jobs: 
-        - build
+          - building image:
+              context: Docker_Login
+        
